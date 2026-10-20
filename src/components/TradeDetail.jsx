@@ -48,10 +48,6 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
   }
 
   function handleAction(rel) {
-    if (rel === 'transfer') {
-      window.open(links.transfer.href, '_blank', 'noopener,noreferrer');
-      return;
-    }
     if (rel === 'cancel') {
       setCancelOpen((open) => !open);
       return;
@@ -139,7 +135,7 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
       <footer className="detail-foot">
         <dl className="facts">
           <div>
-            <dt>송금 요청한 때</dt>
+            <dt>결제 요청한 때</dt>
             <dd>{dateTime(trade.createdAt)}</dd>
           </div>
           <div>
@@ -168,7 +164,7 @@ function waitingText(trade) {
   const buyer = trade.myRole === 'BUYER';
   switch (trade.status) {
     case 'PAYMENT_REQUESTED':
-      return buyer ? '' : '구매자의 송금을 기다리는 중이에요.';
+      return buyer ? '' : '구매자의 결제를 기다리는 중이에요.';
     case 'PAID':
       return buyer ? '' : '구매자가 물건을 받고 구매 확정하면 거래가 끝나요.';
     case 'COMPLETED':

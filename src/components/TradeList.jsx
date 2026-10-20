@@ -13,8 +13,8 @@ export default function TradeList({ role, trades, selectedId, onSelect, loading 
     return (
       <p className="list-empty">
         {role === 'BUYER'
-          ? '아직 거래가 없어요. 판매자가 채팅에서 송금 요청을 보내면 여기에 생겨요.'
-          : '아직 거래가 없어요. 채팅방에서 구매자에게 송금 요청을 보내면 여기에 생겨요.'}
+          ? '아직 거래가 없어요. 판매자가 채팅에서 결제 요청을 보내면 여기에 생겨요.'
+          : '아직 거래가 없어요. 채팅방에서 구매자에게 결제 요청을 보내면 여기에 생겨요.'}
       </p>
     );
   }

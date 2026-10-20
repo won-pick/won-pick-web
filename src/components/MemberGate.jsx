@@ -60,7 +60,7 @@ export default function MemberGate({ onEnter }) {
           우리 반에서 다시.
         </h1>
         <p className="gate-lead">
-          우리WON 청년 IT 아카데미 A·B반 수강생과 강사, 매니저가 함께 쓰는 중고거래예요. 돈은 카카오페이로 판매자에게 바로 보내고,
+          우리WON 청년 IT 아카데미 A·B반 수강생과 강사, 매니저가 함께 쓰는 중고거래예요. 돈은 WON-pick 잔액으로 판매자에게 바로 보내고,
           거래 단계는 WON-pick이 기록해요.
         </p>
       </div>

@@ -101,7 +101,7 @@ export default function ProductDetail({ userId, productId, categories, onChatOpe
               {busy ? '채팅방 여는 중…' : '판매자와 채팅하기'}
             </button>
             <p className="action-hint">
-              대화로 거래 장소와 시간을 정해요. 판매자가 송금 요청을 보내면 카카오페이로 송금해요.
+              대화로 거래 장소와 시간을 정해요. 판매자가 결제 요청을 보내면 WON-pick 잔액으로 결제해요.
             </p>
           </div>
         )}
@@ -110,7 +110,7 @@ export default function ProductDetail({ userId, productId, categories, onChatOpe
             <button type="button" className="btn btn-ghost" onClick={() => onShowChats(product.productId)}>
               이 상품의 채팅 보기
             </button>
-            <p className="action-hint">채팅한 사람 중 한 명에게 채팅방에서 송금 요청을 보낼 수 있어요.</p>
+            <p className="action-hint">채팅한 사람 중 한 명에게 채팅방에서 결제 요청을 보낼 수 있어요.</p>
           </div>
         )}
         {!links.trade && !mine && product.status !== 'ON_SALE' && (

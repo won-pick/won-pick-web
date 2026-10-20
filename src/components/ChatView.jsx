@@ -11,7 +11,7 @@ const POLL_MS = 5000;
 
 /**
  * 채팅 — 한 상품에 여러 구매자가 각자 방을 가진다.
- * 판매자는 방 안에서 "송금 요청 보내기"로 거래를 시작한다 (화면이 Trade POST /trades 를 직접 부른다).
+ * 판매자는 방 안에서 "결제 요청 보내기"로 거래를 시작한다 (화면이 Trade POST /trades 를 직접 부른다).
  */
 export default function ChatView({ memberId, roomId, productFilter, onSelectRoom, onClearFilter, onTradeChanged }) {
   const [rooms, setRooms] = useState([]);
@@ -184,7 +184,7 @@ function ChatRoom({ memberId, room, product, onTradeChanged }) {
       await notify(
         created.tradeId,
         'payment-request',
-        `송금 요청을 보냈어요. 위의 '카카오페이로 송금하기'로 ${won(created.price)}을 보내 주세요.`,
+        `결제 요청을 보냈어요. 위의 '결제하기'로 ${won(created.price)}을 결제해 주세요.`,
       );
     } catch (e) {
       if (e.status !== 0) keyRef.current = null; // 연결 실패만 같은 키로 다시 시도
@@ -225,16 +225,16 @@ function ChatRoom({ memberId, room, product, onTradeChanged }) {
           {canRequest && (
             <div className="action">
               <button type="button" className="btn btn-primary" onClick={handleRequestPayment} disabled={busy}>
-                {busy ? '요청하는 중…' : '송금 요청 보내기'}
+                {busy ? '요청하는 중…' : '결제 요청 보내기'}
               </button>
               <p className="action-hint">
-                대화로 거래를 정했다면 이 구매자에게 {product ? won(product.price) : ''} 송금을 요청해요. 요청하면 상품이 거래 중이 되어
-                다른 사람은 송금 요청을 받을 수 없어요.
+                대화로 거래를 정했다면 이 구매자에게 {product ? won(product.price) : ''} 결제를 요청해요. 요청하면 상품이 거래 중이 되어
+                다른 사람은 결제 요청을 받을 수 없어요.
               </p>
             </div>
           )}
           {!canRequest && !isSeller && product?.status === 'ON_SALE' && (
-            <p className="actions-wait">판매자와 거래를 정하면 판매자가 송금 요청을 보내요. 그때 여기에 송금 버튼이 생겨요.</p>
+            <p className="actions-wait">판매자와 거래를 정하면 판매자가 결제 요청을 보내요. 그때 여기에 결제 버튼이 생겨요.</p>
           )}
           {product && product.status === 'RESERVED' && (
             <p className="actions-wait">이 상품은 다른 채팅방에서 거래가 진행 중이에요.</p>
