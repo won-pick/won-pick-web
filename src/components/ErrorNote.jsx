@@ -8,6 +8,8 @@ const NEXT_STEP = {
   DUPLICATE_NICKNAME: '다른 닉네임으로 가입하거나, 회원 번호로 계속해 주세요.',
   PRODUCT_NOT_AVAILABLE: '이 상품은 지금 다른 사람과 거래 중이거나 이미 팔렸어요.',
   INVALID_STATUS: '그사이 거래 상태가 바뀌었어요. 화면을 새로고침해 주세요.',
+  CHAT_ROOM_NOT_FOUND: 'Chat 서버가 재시작되면 대화가 초기화돼요. 거래를 새로 문의하면 방이 다시 만들어져요.',
+  CHAT_ACCESS_DENIED: '이 거래의 구매자와 판매자만 대화할 수 있어요.',
 };
 
 export default function ErrorNote({ error }) {
@@ -18,8 +20,9 @@ export default function ErrorNote({ error }) {
       <p className="error-message">{error.message}</p>
       {error.fieldErrors?.length > 0 && (
         <ul>
-          {error.fieldErrors.map((f) => (
-            <li key={f.field}>{f.message}</li>
+          {error.fieldErrors.map((f, i) => (
+            // Trade는 {field, message}, Chat은 "field: message" 문자열로 준다
+            <li key={i}>{typeof f === 'string' ? f : f.message}</li>
           ))}
         </ul>
       )}

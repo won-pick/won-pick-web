@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { listCategories } from './api/market.js';
 import { getTrade, listTrades } from './api/trade.js';
+import ChatPanel from './components/ChatPanel.jsx';
 import ErrorNote from './components/ErrorNote.jsx';
 import MemberGate from './components/MemberGate.jsx';
 import ProductBrowser from './components/ProductBrowser.jsx';
@@ -241,6 +242,7 @@ export default function App() {
               onRefresh={refreshDetail}
               refreshing={detailLoading}
             />
+            {trade && trade.tradeId === tradeId && <ChatPanel trade={trade} />}
           </div>
         </div>
       )}

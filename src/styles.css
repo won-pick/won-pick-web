@@ -896,6 +896,108 @@ label {
   justify-self: start;
 }
 
+/* ── 거래 채팅 ── */
+.chat {
+  display: grid;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+}
+
+.chat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-head h3 {
+  font-size: 1rem;
+}
+
+.chat-head p {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 16px 20px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  height: 300px;
+  overflow-y: auto;
+  background: var(--paper);
+}
+
+.chat-empty {
+  color: var(--muted);
+  font-size: 0.9375rem;
+  text-align: center;
+  padding-top: 40px;
+}
+
+.bubble-row {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+}
+
+.bubble-row.is-mine {
+  justify-items: end;
+}
+
+.bubble {
+  max-width: min(80%, 46ch);
+  padding: 9px 13px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.is-mine .bubble {
+  border-radius: 14px 14px 4px 14px;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* 송금 요청·입금 확인 알림 — 거래 장부와 같은 인주색 테두리 */
+.is-notice .bubble,
+.is-notice.is-mine .bubble {
+  background: color-mix(in srgb, var(--seal) 6%, var(--surface));
+  border: 1px dashed var(--seal);
+  color: var(--text);
+}
+
+.bubble-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat .error-note {
+  margin: 0 16px 12px;
+}
+
 /* ── 좁은 화면 ── */
 @media (max-width: 860px) {
   .gate {
