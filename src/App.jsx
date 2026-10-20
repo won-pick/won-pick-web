@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { roomFromLink, sendTradeNotice } from './api/chat.js';
 import { listCategories } from './api/market.js';
 import { getTrade, listTrades } from './api/trade.js';
 import ChatPanel from './components/ChatPanel.jsx';
+import ChatView from './components/ChatView.jsx';
 import ErrorNote from './components/ErrorNote.jsx';
 import MemberGate from './components/MemberGate.jsx';
 import ProductBrowser from './components/ProductBrowser.jsx';
@@ -10,9 +12,11 @@ import ProductForm from './components/ProductForm.jsx';
 import TradeDetail from './components/TradeDetail.jsx';
 import TradeList from './components/TradeList.jsx';
 import { clearMember, loadMember, saveMember } from './session.js';
+import { CHAT_NOTICE } from './tradeText.js';
 
 const VIEWS = [
   { id: 'products', label: '상품 둘러보기' },
+  { id: 'chats', label: '채팅' },
   { id: 'trades', label: '내 거래' },
   { id: 'sell', label: '상품 올리기' },
 ];
@@ -34,9 +38,12 @@ export default function App() {
   const [productId, setProductId] = useState(null);
   const [productsReload, setProductsReload] = useState(0);
 
+  // 채팅
+  const [roomId, setRoomId] = useState(null);
+  const [chatProductFilter, setChatProductFilter] = useState(null);
+
   // 거래
   const [role, setRole] = useState('BUYER');
-  const [productFilter, setProductFilter] = useState(null);
   const [trades, setTrades] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState(null);
@@ -44,6 +51,7 @@ export default function App() {
   const [trade, setTrade] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
+  const [chatReload, setChatReload] = useState(0);
 
   const memberId = member?.userId;
 
@@ -57,14 +65,14 @@ export default function App() {
     if (!memberId || view !== 'trades') return;
     setListLoading(true);
     try {
-      setTrades(await listTrades(memberId, { role, productId: productFilter }));
+      setTrades(await listTrades(memberId, { role }));
       setListError(null);
     } catch (e) {
       setListError(e);
     } finally {
       setListLoading(false);
     }
-  }, [memberId, role, productFilter, view]);
+  }, [memberId, role, view]);
 
   const refreshDetail = useCallback(async () => {
     if (!memberId || !tradeId) return;
@@ -83,14 +91,6 @@ export default function App() {
     refreshList();
   }, [refreshList]);
 
-  // 좁은 화면에서는 상세가 목록 아래에 있어서, 고르면 상세로 내려 준다
-  useEffect(() => {
-    if (!productId && !tradeId) return;
-    if (!window.matchMedia?.('(max-width: 860px)').matches) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    document.querySelector('.detail-column')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-  }, [productId, tradeId]);
-
   useEffect(() => {
     refreshDetail();
   }, [refreshDetail]);
@@ -103,6 +103,14 @@ export default function App() {
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [view, trade, refreshDetail, refreshList]);
+
+  // 좁은 화면에서는 상세가 목록 아래에 있어서, 고르면 상세로 내려 준다
+  useEffect(() => {
+    if (!productId && !tradeId && !roomId) return;
+    if (!window.matchMedia?.('(max-width: 860px)').matches) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelector('.detail-column')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }, [productId, tradeId, roomId]);
 
   function enter(next) {
     saveMember(next);
@@ -117,28 +125,33 @@ export default function App() {
     setTradeId(null);
     setTrade(null);
     setProductId(null);
+    setRoomId(null);
   }
 
-  function openTrades(nextRole, filter = null) {
+  function openChats(filter = null, nextRoomId = null) {
+    setView('chats');
+    setChatProductFilter(filter);
+    setRoomId(nextRoomId);
+  }
+
+  function openTrades(nextRole) {
     setView('trades');
     setRole(nextRole);
-    setProductFilter(filter);
     setTradeId(null);
     setTrade(null);
   }
 
-  function openTrade(opened) {
-    setView('trades');
-    setRole(opened.myRole === 'SELLER' ? 'SELLER' : 'BUYER');
-    setProductFilter(null);
-    setTradeId(opened.tradeId);
-    setTrade(opened);
-  }
-
-  function handleTradeChanged(updated) {
+  // 거래 화면에서 버튼을 눌렀을 때도 채팅방에 알림을 남긴다 (Trade는 Chat을 부르지 않는다)
+  function handleTradeChanged(updated, rel) {
     setTrade(updated);
-    setProductsReload((n) => n + 1); // 송금 요청·구매 확정이면 상품 상태도 바뀐다
+    setProductsReload((n) => n + 1);
     refreshList();
+    const link = updated._links?.chat ?? trade?._links?.chat;
+    if (CHAT_NOTICE[rel] && link) {
+      sendTradeNotice(roomFromLink(link), updated.tradeId, rel, CHAT_NOTICE[rel])
+        .then(() => setChatReload((n) => n + 1))
+        .catch(() => {});
+    }
   }
 
   function handleProductCreated(product) {
@@ -151,6 +164,8 @@ export default function App() {
     return <MemberGate onEnter={enter} />;
   }
 
+  const shownTrade = trade && trade.tradeId === tradeId ? trade : null;
+
   return (
     <div className="app">
       <header className="topbar">
@@ -162,7 +177,11 @@ export default function App() {
               type="button"
               className={`view-link${view === v.id ? ' is-active' : ''}`}
               aria-current={view === v.id ? 'page' : undefined}
-              onClick={() => (v.id === 'trades' ? openTrades(role) : setView(v.id))}
+              onClick={() => {
+                if (v.id === 'trades') openTrades(role);
+                else if (v.id === 'chats') openChats(null, roomId);
+                else setView(v.id);
+              }}
             >
               {v.label}
             </button>
@@ -195,11 +214,22 @@ export default function App() {
               userId={memberId}
               productId={productId}
               categories={categories}
-              onTradeOpened={openTrade}
-              onShowInquiries={(id) => openTrades('SELLER', id)}
+              onChatOpened={(id) => openChats(null, id)}
+              onShowChats={(id) => openChats(id, null)}
             />
           </div>
         </div>
+      )}
+
+      {view === 'chats' && (
+        <ChatView
+          memberId={memberId}
+          roomId={roomId}
+          productFilter={chatProductFilter}
+          onSelectRoom={setRoomId}
+          onClearFilter={() => setChatProductFilter(null)}
+          onTradeChanged={() => setProductsReload((n) => n + 1)}
+        />
       )}
 
       {view === 'trades' && (
@@ -219,16 +249,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-
-            {productFilter && (
-              <p className="filter-note">
-                상품 {productFilter}번의 문의만 보는 중
-                <button type="button" className="btn-link" onClick={() => setProductFilter(null)}>
-                  모두 보기
-                </button>
-              </p>
-            )}
-
             <ErrorNote error={listError} />
             <TradeList role={role} trades={trades} selectedId={tradeId} onSelect={setTradeId} loading={listLoading} />
           </aside>
@@ -237,12 +257,18 @@ export default function App() {
             <ErrorNote error={detailError} />
             <TradeDetail
               memberId={memberId}
-              trade={trade && trade.tradeId === tradeId ? trade : null}
+              trade={shownTrade}
               onChanged={handleTradeChanged}
               onRefresh={refreshDetail}
               refreshing={detailLoading}
             />
-            {trade && trade.tradeId === tradeId && <ChatPanel trade={trade} />}
+            {shownTrade?._links?.chat && (
+              <ChatPanel
+                room={roomFromLink(shownTrade._links.chat)}
+                otherLabel={shownTrade.myRole === 'BUYER' ? '판매자' : '구매자'}
+                reloadKey={chatReload}
+              />
+            )}
           </div>
         </div>
       )}

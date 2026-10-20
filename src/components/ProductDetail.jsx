@@ -1,29 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { openRoom } from '../api/chat.js';
 import { getProduct } from '../api/market.js';
-import { createTrade, newIdempotencyKey } from '../api/trade.js';
 import { PRODUCT_STATUS, PRODUCT_TONE, won } from '../tradeText.js';
 import ErrorNote from './ErrorNote.jsx';
 import { Thumb } from './ProductBrowser.jsx';
 
 /**
  * 상품 상세 — Market GET /products/{id}.
- * "구매 문의하기"는 Market이 _links.trade 를 줄 때만 보인다 (판매 중이고, 내 상품이 아닐 때).
- * 그 링크(Trade의 POST /trades)를 그대로 따라간다.
+ * "판매자와 채팅하기"는 Market이 _links.trade(거래 가능 신호)를 줄 때만 보인다 — 판매 중이고 내 상품이 아닐 때.
+ * 누르면 Chat 서버에 채팅방을 연다 (이미 있으면 Chat이 기존 방을 돌려준다).
  */
-export default function ProductDetail({ userId, productId, categories, onTradeOpened, onShowInquiries }) {
+export default function ProductDetail({ userId, productId, categories, onChatOpened, onShowChats }) {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState(null);
-  const keyRef = useRef(null);
 
   useEffect(() => {
     if (!productId) return undefined;
     let alive = true;
     setLoading(true);
     setActionError(null);
-    keyRef.current = null;
     getProduct(userId, productId)
       .then((p) => {
         if (!alive) return;
@@ -63,16 +61,13 @@ export default function ProductDetail({ userId, productId, categories, onTradeOp
   const mine = product.sellerId === userId;
   const categoryName = categories.find((c) => c.code === product.category)?.name ?? product.category;
 
-  async function inquire() {
-    if (!keyRef.current) keyRef.current = newIdempotencyKey();
+  async function startChat() {
     setBusy(true);
     setActionError(null);
     try {
-      const { trade } = await createTrade(userId, product.productId, keyRef.current, links.trade.href);
-      keyRef.current = null;
-      onTradeOpened(trade);
+      const room = await openRoom({ productId: product.productId, buyerId: userId, sellerId: product.sellerId });
+      onChatOpened(room.id);
     } catch (e) {
-      if (e.status !== 0) keyRef.current = null; // 연결 실패만 같은 키로 다시 시도
       setActionError(e);
     } finally {
       setBusy(false);
@@ -102,25 +97,25 @@ export default function ProductDetail({ userId, productId, categories, onTradeOp
       <div className="actions">
         {links.trade && (
           <div className="action">
-            <button type="button" className="btn btn-primary" onClick={inquire} disabled={busy}>
-              {busy ? '문의하는 중…' : '구매 문의하기'}
+            <button type="button" className="btn btn-primary" onClick={startChat} disabled={busy}>
+              {busy ? '채팅방 여는 중…' : '판매자와 채팅하기'}
             </button>
             <p className="action-hint">
-              판매자와 거래가 시작돼요. 송금은 판매자가 송금 요청을 보낸 뒤에 카카오페이로 해요.
+              대화로 거래 장소와 시간을 정해요. 판매자가 송금 요청을 보내면 카카오페이로 송금해요.
             </p>
           </div>
         )}
         {mine && (
           <div className="action">
-            <button type="button" className="btn btn-ghost" onClick={() => onShowInquiries(product.productId)}>
-              이 상품의 문의 보기
+            <button type="button" className="btn btn-ghost" onClick={() => onShowChats(product.productId)}>
+              이 상품의 채팅 보기
             </button>
-            <p className="action-hint">문의한 사람 중 한 명을 골라 송금 요청을 보낼 수 있어요.</p>
+            <p className="action-hint">채팅한 사람 중 한 명에게 채팅방에서 송금 요청을 보낼 수 있어요.</p>
           </div>
         )}
         {!links.trade && !mine && product.status !== 'ON_SALE' && (
           <p className="actions-wait">
-            {product.status === 'SOLD' ? '판매가 끝난 상품이에요.' : '다른 구매자와 거래가 진행 중이라 지금은 문의할 수 없어요.'}
+            {product.status === 'SOLD' ? '판매가 끝난 상품이에요.' : '다른 구매자와 거래가 진행 중이라 지금은 채팅을 시작할 수 없어요.'}
           </p>
         )}
       </div>

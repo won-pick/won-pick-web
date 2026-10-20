@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { listMessages, markRead, roomFromLink, sendMessage } from '../api/chat.js';
+import { useEffect, useRef, useState } from 'react';
+import { listMessages, markRead, sendMessage } from '../api/chat.js';
 import { newIdempotencyKey } from '../api/trade.js';
 import { dateTime } from '../tradeText.js';
 import ErrorNote from './ErrorNote.jsx';
@@ -7,12 +7,10 @@ import ErrorNote from './ErrorNote.jsx';
 const POLL_MS = 3000;
 
 /**
- * 거래 채팅 — Trade 응답의 _links.chat 이 있을 때만 보인다 (끝난 거래에는 링크가 없다).
- * 새 메시지는 3초마다 afterId 로 이어서 받는다.
+ * 채팅방 대화. room = { id, path, memberId } (api/chat.js 의 roomRef / roomFromLink).
+ * 새 메시지는 3초마다 afterId 로 이어서 받는다. reloadKey가 바뀌면 바로 한 번 더 받는다.
  */
-export default function ChatPanel({ trade }) {
-  const link = trade?._links?.chat;
-  const room = useMemo(() => (link ? roomFromLink(link) : null), [link?.href]);
+export default function ChatPanel({ room, otherLabel, reloadKey = 0 }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -20,6 +18,9 @@ export default function ChatPanel({ trade }) {
   const pendingKey = useRef(null);
   const listRef = useRef(null);
   const lastIdRef = useRef(0);
+  const pullRef = useRef(() => {});
+
+  const roomKey = room ? `${room.path}|${room.memberId}` : '';
 
   useEffect(() => {
     setMessages([]);
@@ -41,13 +42,20 @@ export default function ChatPanel({ trade }) {
       }
     }
 
+    pullRef.current = pull;
     pull();
     const timer = setInterval(pull, POLL_MS);
     return () => {
       alive = false;
       clearInterval(timer);
     };
-  }, [room]);
+    // room 객체가 새로 만들어져도 같은 방이면 다시 시작하지 않는다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomKey]);
+
+  useEffect(() => {
+    if (reloadKey) pullRef.current();
+  }, [reloadKey]);
 
   useEffect(() => {
     const el = listRef.current;
@@ -55,8 +63,6 @@ export default function ChatPanel({ trade }) {
   }, [messages.length]);
 
   if (!room) return null;
-
-  const otherLabel = trade.myRole === 'BUYER' ? '판매자' : '구매자';
 
   async function handleSend(event) {
     event.preventDefault();

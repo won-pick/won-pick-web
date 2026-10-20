@@ -489,13 +489,20 @@ label {
   border-top: 1px solid var(--line);
 }
 
+/* 채팅방 안의 거래 카드 — 제목·가격은 위 채팅방 머리에 있으니 상태부터 보여 준다 */
+.detail-compact .detail-status {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 /* 도장 줄 — 이 화면의 기억에 남을 단 한 가지 */
 .rail {
   list-style: none;
   margin: 28px 0 8px;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   position: relative;
 }
 
@@ -503,8 +510,8 @@ label {
   content: '';
   position: absolute;
   top: 27px;
-  left: 12.5%;
-  right: 12.5%;
+  left: 16.67%;
+  right: 16.67%;
   border-top: 2px dashed var(--line);
 }
 
@@ -996,6 +1003,119 @@ label {
 
 .chat .error-note {
   margin: 0 16px 12px;
+}
+
+/* ── 채팅 목록 ── */
+.room-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.room-row {
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  padding: 14px 12px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.room-row:hover .room-row-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.room-row.is-selected {
+  background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--ink);
+}
+
+.room-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-row-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-row-sub {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.room-row-last {
+  margin-top: 2px;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread {
+  flex: none;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--seal);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 채팅방 머리와 송금 요청 ── */
+.room-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+}
+
+.room-head h2 {
+  margin-top: 4px;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+}
+
+.room-head-side {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.room-head .detail-price {
+  font-size: 1.375rem;
+}
+
+.request-box {
+  display: grid;
+  gap: 12px;
+  padding: 18px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+}
+
+.request-box:not(:has(> *)) {
+  display: none;
 }
 
 /* ── 좁은 화면 ── */

@@ -3,7 +3,7 @@ import { STATUS_LABEL, STATUS_TONE, won } from '../tradeText.js';
 /**
  * 내 거래 목록.
  *  - 구매: 거래 한 줄씩
- *  - 판매: 상품별로 묶어서 "누가 문의했나"를 보여 준다 (한 상품에 여러 명이 문의할 수 있다)
+ *  - 판매: 상품별로 묶어서 보여 준다 (취소된 뒤 다른 구매자와 다시 거래할 수 있다)
  */
 export default function TradeList({ role, trades, selectedId, onSelect, loading }) {
   if (loading && trades.length === 0) {
@@ -13,8 +13,8 @@ export default function TradeList({ role, trades, selectedId, onSelect, loading 
     return (
       <p className="list-empty">
         {role === 'BUYER'
-          ? '아직 문의한 상품이 없어요. 상품 둘러보기에서 마음에 드는 상품에 문의해 보세요.'
-          : '아직 내 상품에 들어온 문의가 없어요.'}
+          ? '아직 거래가 없어요. 판매자가 채팅에서 송금 요청을 보내면 여기에 생겨요.'
+          : '아직 거래가 없어요. 채팅방에서 구매자에게 송금 요청을 보내면 여기에 생겨요.'}
       </p>
     );
   }
@@ -44,7 +44,7 @@ export default function TradeList({ role, trades, selectedId, onSelect, loading 
           <header>
             <h3>{items[0].productTitle}</h3>
             <p>
-              {won(items[0].price)} · 문의 {items.length}명
+              {won(items[0].price)} · 거래 {items.length}건
             </p>
           </header>
           <ul className="trade-list">

@@ -14,7 +14,7 @@ const RESOURCE_LINKS = [
  * 거래 상세. 버튼은 응답의 _links 에 있는 것만 그린다 (HATEOAS).
  * 이 화면은 "누가 무엇을 할 수 있나"를 판단하지 않는다 — 서버가 링크로 알려 준다.
  */
-export default function TradeDetail({ memberId, trade, onChanged, onRefresh, refreshing }) {
+export default function TradeDetail({ memberId, trade, onChanged, onRefresh, refreshing, compact = false }) {
   const [busyRel, setBusyRel] = useState(null);
   const [error, setError] = useState(null);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -39,7 +39,7 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
       const updated = await followLink(memberId, links[rel], body);
       setCancelOpen(false);
       setReason('');
-      onChanged(updated);
+      onChanged(updated, rel);
     } catch (e) {
       setError(e);
     } finally {
@@ -60,11 +60,11 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
   }
 
   return (
-    <section className="detail" aria-labelledby="detail-title">
-      <header className="detail-head">
+    <section className={`detail${compact ? ' detail-compact' : ''}`} aria-labelledby="detail-title">
+      <header className={`detail-head${compact ? ' sr-only' : ''}`}>
         <div>
           <p className="detail-sub">
-            거래 {trade.tradeId}번 · {isBuyer ? `판매자 ${trade.sellerId}번에게 문의` : `구매자 ${trade.buyerId}번의 문의`}
+            거래 {trade.tradeId}번 · {isBuyer ? `판매자 ${trade.sellerId}번과의 거래` : `구매자 ${trade.buyerId}번과의 거래`}
           </p>
           <h2 id="detail-title">{trade.productTitle}</h2>
         </div>
@@ -139,7 +139,7 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
       <footer className="detail-foot">
         <dl className="facts">
           <div>
-            <dt>문의한 때</dt>
+            <dt>송금 요청한 때</dt>
             <dd>{dateTime(trade.createdAt)}</dd>
           </div>
           <div>
@@ -147,7 +147,7 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
             <dd>{dateTime(trade.updatedAt)}</dd>
           </div>
         </dl>
-        <div className="resources">
+        <div className={`resources${compact ? ' sr-only' : ''}`}>
           <p>이 거래와 이어진 다른 서버의 자원</p>
           <ul>
             {RESOURCE_LINKS.filter((r) => links[r.rel]).map((r) => (
@@ -167,9 +167,7 @@ export default function TradeDetail({ memberId, trade, onChanged, onRefresh, ref
 function waitingText(trade) {
   const buyer = trade.myRole === 'BUYER';
   switch (trade.status) {
-    case 'REQUESTED':
-      return buyer ? '판매자가 송금 요청을 보내면 송금할 수 있어요.' : '';
-    case 'PAYMENT_PENDING':
+    case 'PAYMENT_REQUESTED':
       return buyer ? '' : '구매자의 송금을 기다리는 중이에요.';
     case 'PAID':
       return buyer ? '' : '구매자가 물건을 받고 구매 확정하면 거래가 끝나요.';
