@@ -187,7 +187,7 @@ function ChatRoom({ memberId, room, product, onTradeChanged }) {
         `결제 요청을 보냈어요. 위의 '결제하기'로 ${won(created.price)}을 결제해 주세요.`,
       );
     } catch (e) {
-      if (e.status !== 0) keyRef.current = null; // 연결 실패만 같은 키로 다시 시도
+      if (e.status >= 400 && e.status < 500) keyRef.current = null; // 연결 실패·서버 오류는 같은 키로 재시도
       setError(e);
     } finally {
       setBusy(false);

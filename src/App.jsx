@@ -141,7 +141,7 @@ export default function App() {
     setTrade(null);
   }
 
-  // 거래 화면에서 버튼을 눌렀을 때도 채팅방에 알림을 남긴다 (Trade는 Chat을 부르지 않는다)
+  // 거래 화면에서 버튼을 눌렀을 때도 채팅방에 알림을 남긴다 (Trade는 채팅방 검증만 수행한다)
   function handleTradeChanged(updated, rel) {
     setTrade(updated);
     setProductsReload((n) => n + 1);

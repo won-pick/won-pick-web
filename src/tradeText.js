@@ -1,6 +1,7 @@
 // 서버 값 → 화면 문구. 상태 전이 규칙은 여기 없다 (그건 서버의 _links 가 알려 준다).
 
 export const STATUS_LABEL = {
+  REQUESTED: '결제 요청 준비',
   PAYMENT_REQUESTED: '결제 대기',
   PAID: '결제 완료',
   COMPLETED: '거래 완료',
@@ -8,6 +9,7 @@ export const STATUS_LABEL = {
 };
 
 export const STATUS_TONE = {
+  REQUESTED: 'wait',
   PAYMENT_REQUESTED: 'wait',
   PAID: 'wait',
   COMPLETED: 'done',
@@ -23,9 +25,14 @@ export const STEPS = [
 
 // 링크 이름 → 버튼 문구와 설명. 서버가 링크를 줄 때만 버튼이 생긴다.
 export const ACTIONS = {
+  'request-payment': {
+    label: '결제 요청 다시 보내기',
+    hint: '중단된 상품 예약과 결제 요청을 다시 시도합니다.',
+    primary: true,
+  },
   pay: {
     label: '결제하기',
-    hint: '내 WON-pick 잔액에서 거래 금액이 판매자에게 바로 보내집니다.',
+    hint: '실제 돈이 아닌 WON-pick 가상 잔액으로 결제합니다.',
     primary: true,
   },
   complete: {
@@ -35,14 +42,14 @@ export const ACTIONS = {
   },
   cancel: {
     label: '거래 취소',
-    hint: '구매 확정 전까지 취소할 수 있습니다. 이미 결제했다면 잔액이 환불되고, 상품은 다시 판매 중이 됩니다.',
+    hint: '구매 확정 전까지 취소할 수 있습니다. 결제했다면 가상 잔액이 환불되고 상품은 다시 판매 중이 됩니다.',
     danger: true,
   },
 };
 
-export const ACTION_ORDER = ['pay', 'complete', 'cancel'];
+export const ACTION_ORDER = ['request-payment', 'pay', 'complete', 'cancel'];
 
-// 행동이 끝난 뒤 채팅방에 남기는 알림 (Trade는 Chat을 부르지 않으므로 화면이 보낸다)
+// 행동이 끝난 뒤 채팅방에 남기는 알림 (Trade는 채팅방 검증만 하므로 화면이 알림을 보낸다)
 export const CHAT_NOTICE = {
   pay: '결제를 마쳤어요. 물건을 받으면 구매 확정을 누를게요.',
   complete: '구매를 확정했어요. 거래가 끝났어요!',

@@ -3,7 +3,7 @@
 우리WON 청년 IT 아카데미(A·B반) 교내 중고거래 서비스 **WON-pick**의 React 화면입니다.
 핵심 기능 — **상품 둘러보기 → 판매자와 채팅 → 채팅방에서 결제 요청(판매자) → 잔액 결제(구매자) → 구매 확정(구매자)** — 를 실제 API로 처음부터 끝까지 동작시킵니다.
 
-## 연동 현황 (2026-10-20, 각 저장소 확인 기준)
+## 연동 규격 (2026-10-21)
 
 | 서버 | 화면에서 쓰는 API | 상태 |
 | --- | --- | --- |
@@ -12,9 +12,9 @@
 | Chat (`chat-service`, 8080) | `POST /chat/rooms`, `GET /chat/rooms?memberId=`, `GET/POST /chat/rooms/{id}/messages`, `PATCH .../read-position` | 연동함 |
 | Payment (`payment-service`, 8084) | 화면에서 직접 부르지 않음 (Trade가 `POST /orders`, `POST /orders/{id}/payments` 호출) | 연동함 |
 
-생략한 것: 찜, 상품 수정·삭제, 이미지 업로드(사진은 이미지 주소로 등록), 잔액 조회(Payment API 없음).
+생략한 것: 찜, 상품 수정·삭제, 이미지 업로드(사진은 이미지 주소로 등록), 잔액 조회 화면(Payment의 계좌 API는 있음).
 
-**거래가 생기는 시점:** 판매자가 채팅방에서 "결제 요청 보내기"를 누를 때입니다. 이 버튼은 화면이 Trade `POST /trades`를 직접 부르고(팀 결정), Trade는 Chat을 부르지 않습니다. 결제 요청·결제·구매 확정·취소 알림은 화면이 채팅방에 메시지로 남깁니다(거래 번호 기반 `Idempotency-Key`라 다시 보내도 한 번만 쌓임).
+**거래가 생기는 시점:** 판매자가 채팅방에서 "결제 요청 보내기"를 누를 때입니다. 이 버튼은 화면이 Trade `POST /trades`를 직접 부르고(팀 결정), Trade는 Chat에서 방의 상품·참여자를 확인합니다. 결제 요청·결제·구매 확정·취소 알림은 화면이 채팅방에 메시지로 남깁니다(거래 번호 기반 `Idempotency-Key`라 다시 보내도 한 번만 쌓임).
 
 ## 화면
 
@@ -37,7 +37,7 @@
 
 ## 실행
 
-Node.js 20 이상이 필요합니다.
+Vite 8을 실행할 수 있는 Node.js가 필요합니다. 이 작업에서는 Node.js 24로 빌드했습니다.
 
 ```bash
 npm install
@@ -54,13 +54,13 @@ npm run dev        # http://localhost:5173
 
 ### 전체 흐름 확인하기
 
-서버 4개와 이 화면을 한 PC에서 한꺼번에 띄우려면 `trade-service\scripts\run-all.cmd`를 실행합니다 (자세한 내용은 trade-service README).
+서버는 각 담당 PC에서 실행합니다. [통합 규격](docs/TEAM-INTEGRATION.md)에 따라 서버 주소와 CORS를 설정하세요.
 
 1. 브라우저 창 A에서 판매자로 가입 → 상품 올리기
 2. 시크릿 창 B에서 구매자로 가입 → 상품 둘러보기 → 판매자와 채팅하기 → 인사
 3. 창 A: 채팅 → 방 열기 → 결제 요청 보내기 → 창 B: 결제하기 → 창 B: 구매 확정
 
-서버들이 서로 다른 PC에서 돌면 `.env`에 각 PC의 IP를 넣고(`http://172.21.26.x:포트`), 시연은 이 화면을 실행한 PC의 브라우저에서 `http://localhost:5173`으로 하세요. 그러면 Market·Trade의 CORS 설정을 바꿀 필요가 없습니다.
+서버들이 서로 다른 PC에서 돌면 `.env`에 각 PC의 IP를 넣고(`http://172.21.26.x:포트`), 시연은 이 화면을 실행한 PC의 브라우저에서 `http://localhost:5173`으로 하세요. Market·Trade의 CORS에 http://localhost:5173을 허용해야 합니다. 다른 PC의 브라우저에서 접속한다면 그 프론트 Origin도 허용하세요.
 
 ## 구조
 
@@ -85,3 +85,5 @@ src/
 ├── tradeText.js       # 상태·버튼 문구
 └── session.js         # 현재 회원 기억
 ```
+
+결제는 가상 잔액 모의 결제입니다. Trade 상태는 REQUESTED / PAYMENT_REQUESTED / PAID / COMPLETED / CANCELED이며 구매 확정 전까지 취소·환불할 수 있습니다.
