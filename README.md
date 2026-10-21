@@ -87,3 +87,5 @@ src/
 ```
 
 결제는 가상 잔액 모의 결제입니다. Trade 상태는 REQUESTED / PAYMENT_REQUESTED / PAID / COMPLETED / CANCELED이며 구매 확정 전까지 취소·환불할 수 있습니다.
+
+각 백엔드는 담당 PC의 로컬 MySQL(root / 1234)에 전용 DB와 없는 테이블을 자동 생성합니다. 프론트에는 DB가 필요 없습니다. 자세한 기본값은 [팀 통합 규격](docs/TEAM-INTEGRATION.md)을 확인하세요.
